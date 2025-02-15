@@ -1,0 +1,30 @@
+@import '../../shared/variables.scss';
+
+.css-1t1j96h-MuiPaper-root-MuiDialog-paper {
+    max-width: 800px !important;
+}
+
+.header-form {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: $color1;
+    background-color: $color8;
+    padding: 10px;
+    position: relative;
+
+    .header-title {
+        flex-grow: 1;
+        text-align: center;
+        margin-left: 45px;
+    }
+
+    button {
+        margin-left: auto;
+    }
+}
+
+.component-form {
+    padding: 0px;
+    height: 100%;
+}
