@@ -32,7 +32,7 @@ const UserModal = ({ open, onClose, userToEditId }: UserModalProps) => {
 
     const validateFields = () => {
         const newErrors: any = {};
-        
+
         const cuitRegex = /^\d{2}-\d{8}-\d$/;
         if (!cuitRegex.test(userData.cuit)) {
             newErrors.cuit = 'El CUIT debe tener el formato XX-XXXXXXXX-X';
@@ -47,7 +47,7 @@ const UserModal = ({ open, onClose, userToEditId }: UserModalProps) => {
             newErrors.name = 'El nombre y apellido son obligatorios';
         }
 
-        if (userData.birthDate && isNaN(Date.parse(userData.birthDate))) {
+        if (userData.birthDate && isNaN(Date.parse(userData.birthDate.toString()))) {
             newErrors.birthDate = 'La fecha de nacimiento no es válida';
         }
 
@@ -59,10 +59,15 @@ const UserModal = ({ open, onClose, userToEditId }: UserModalProps) => {
         if (validationErrors === true) {
             setErrors({});  
             try {
+                const userToSend = {
+                    ...userData,
+                    birthDate: userData.birthDate === '' ? null : userData.birthDate,
+                };
+    
                 if (userToEditId) {
-                    await userService.updateUser(userData);
+                    await userService.updateUser(userToSend);
                 } else {
-                    await userService.createUser(userData);
+                    await userService.createUser(userToSend);
                 }
                 setSnackbarOpen(true); 
                 onClose();
@@ -74,9 +79,8 @@ const UserModal = ({ open, onClose, userToEditId }: UserModalProps) => {
         }
     };
     
-
     const handleClose = () => {
-        setErrors({});  
+        setErrors({});
         onClose();
     };
 
@@ -169,7 +173,7 @@ const UserModal = ({ open, onClose, userToEditId }: UserModalProps) => {
                             label="Fecha de Nacimiento"
                             name="birthDate"
                             type="date"
-                            value={userData.birthDate}
+                            value={userData.birthDate ? userData.birthDate : ''}
                             onChange={handleChange}
                             fullWidth
                             InputLabelProps={{
@@ -178,6 +182,7 @@ const UserModal = ({ open, onClose, userToEditId }: UserModalProps) => {
                             error={!!errors.birthDate}
                             helperText={errors.birthDate}
                         />
+
                         <TextField
                             label="CUIT"
                             name="cuit"
@@ -204,10 +209,10 @@ const UserModal = ({ open, onClose, userToEditId }: UserModalProps) => {
                     </Box>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={onClose}  variant="outlined" color="error" >
+                    <Button onClick={onClose} variant="outlined" color="error" >
                         Cancelar
                     </Button>
-                    <Button onClick={handleSave}   variant="outlined" color="primary">
+                    <Button onClick={handleSave} variant="outlined" color="primary">
                         {userToEditId ? 'Guardar cambios' : 'Crear usuario'}
                     </Button>
                 </DialogActions>
