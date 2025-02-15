@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Dialog, DialogActions, DialogContent, TextField, Button, Box, IconButton } from '@mui/material';
+import { Dialog, DialogActions, DialogContent, TextField, Button, Box, IconButton, Snackbar, Alert } from '@mui/material';
 import userService from '../../services/user.service';
 import CloseIcon from '@mui/icons-material/Close';
 import { UserUpdateDTO } from '../../shared/DTOs/Request/UserUpdateDTO';
 import './UserModal.component.scss';
+
 interface UserModalProps {
     open: boolean;
     onClose: () => void;
@@ -22,6 +23,7 @@ const UserModal = ({ open, onClose, userToEditId }: UserModalProps) => {
         phoneNumber: ''
     });
     const [errors, setErrors] = useState<any>({});
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -55,22 +57,44 @@ const UserModal = ({ open, onClose, userToEditId }: UserModalProps) => {
     const handleSave = async () => {
         const validationErrors = validateFields();
         if (validationErrors === true) {
-            if (userToEditId) {
-                await userService.updateUser(userData);
-            } else {
-                await userService.createUser(userData);
+            setErrors({});  
+            try {
+                if (userToEditId) {
+                    await userService.updateUser(userData);
+                } else {
+                    await userService.createUser(userData);
+                }
+                setSnackbarOpen(true); 
+                onClose();
+            } catch (error) {
+                console.error('Error al guardar el usuario:', error);
             }
-            onClose();
         } else {
-            setErrors(validationErrors);
+            setErrors(validationErrors);  
         }
     };
+    
 
     const handleClose = () => {
+        setErrors({});  
         onClose();
     };
 
+    const handleSnackbarClose = () => {
+        setSnackbarOpen(false);
+    };
+
     useEffect(() => {
+        setUserData({
+            Id: 0,
+            firstName: '',
+            lastName: '',
+            cuit: '',
+            email: '',
+            birthDate: '',
+            address: '',
+            phoneNumber: ''
+        });
         const fetchUserData = async () => {
             if (userToEditId) {
                 try {
@@ -93,100 +117,112 @@ const UserModal = ({ open, onClose, userToEditId }: UserModalProps) => {
     }, [userToEditId]);
 
     return (
-        <Dialog open={open} onClose={onClose}>
-            <div className="header-form">
-                <p>{userToEditId ? 'Editar Usuario' : 'Crear Usuario'}</p>
-                <IconButton
-                    color="inherit"
-                    aria-label={"close"}
-                    onClick={onClose}
-                    edge="start"
-                >
-                    <CloseIcon />
-                </IconButton>
-            </div>
-            <DialogContent style={{
-                overflowY: "auto",
-                padding: "0",
-                height: "100%",
-                scrollbarWidth: "none",
-            }}>
-                <Box display="flex" flexDirection="column" gap={2} style={{ padding: '20px' }}>
-                    <TextField
-                        label="Nombre"
-                        name="firstName"
-                        value={userData.firstName}
-                        onChange={handleChange}
-                        fullWidth
-                        error={!!errors.name}
-                        helperText={errors.name}
-                    />
-                    <TextField
-                        label="Apellido"
-                        name="lastName"
-                        value={userData.lastName}
-                        onChange={handleChange}
-                        fullWidth
-                        error={!!errors.name}
-                        helperText={errors.name}
-                    />
-                    <TextField
-                        label="Email"
-                        name="email"
-                        type="email"
-                        value={userData.email}
-                        onChange={handleChange}
-                        fullWidth
-                        error={!!errors.email}
-                        helperText={errors.email}
-                    />
-                    <TextField
-                        label="Fecha de Nacimiento"
-                        name="birthDate"
-                        type="date"
-                        value={userData.birthDate}
-                        onChange={handleChange}
-                        fullWidth
-                        InputLabelProps={{
-                            shrink: true,
-                        }}
-                        error={!!errors.birthDate}
-                        helperText={errors.birthDate}
-                    />
-                    <TextField
-                        label="CUIT"
-                        name="cuit"
-                        value={userData.cuit}
-                        fullWidth
-                        onChange={handleChange}
-                        error={!!errors.cuit}
-                        helperText={errors.cuit}
-                    />
-                    <TextField
-                        label="Dirección"
-                        name="address"
-                        value={userData.address || ''}
-                        onChange={handleChange}
-                        fullWidth
-                    />
-                    <TextField
-                        label="Teléfono"
-                        name="phoneNumber"
-                        value={userData.phoneNumber || ''}
-                        onChange={handleChange}
-                        fullWidth
-                    />
-                </Box>
-            </DialogContent>
-            <DialogActions>
-                <Button onClick={onClose}  variant="outlined" color="error" >
-                    Cancelar
-                </Button>
-                <Button onClick={handleSave}   variant="outlined" color="primary">
-                    {userToEditId ? 'Guardar cambios' : 'Crear usuario'}
-                </Button>
-            </DialogActions>
-        </Dialog>
+        <div>
+            <Dialog open={open} onClose={handleClose}>
+                <div className="header-form">
+                    <p>{userToEditId ? 'Editar Usuario' : 'Crear Usuario'}</p>
+                    <IconButton
+                        color="inherit"
+                        aria-label={"close"}
+                        onClick={handleClose}
+                        edge="start"
+                    >
+                        <CloseIcon />
+                    </IconButton>
+                </div>
+                <DialogContent style={{
+                    overflowY: "auto",
+                    padding: "0",
+                    height: "100%",
+                    scrollbarWidth: "none",
+                }}>
+                    <Box display="flex" flexDirection="column" gap={2} style={{ padding: '20px' }}>
+                        <TextField
+                            label="Nombre"
+                            name="firstName"
+                            value={userData.firstName}
+                            onChange={handleChange}
+                            fullWidth
+                            error={!!errors.name}
+                            helperText={errors.name}
+                        />
+                        <TextField
+                            label="Apellido"
+                            name="lastName"
+                            value={userData.lastName}
+                            onChange={handleChange}
+                            fullWidth
+                            error={!!errors.name}
+                            helperText={errors.name}
+                        />
+                        <TextField
+                            label="Email"
+                            name="email"
+                            type="email"
+                            value={userData.email}
+                            onChange={handleChange}
+                            fullWidth
+                            error={!!errors.email}
+                            helperText={errors.email}
+                        />
+                        <TextField
+                            label="Fecha de Nacimiento"
+                            name="birthDate"
+                            type="date"
+                            value={userData.birthDate}
+                            onChange={handleChange}
+                            fullWidth
+                            InputLabelProps={{
+                                shrink: true,
+                            }}
+                            error={!!errors.birthDate}
+                            helperText={errors.birthDate}
+                        />
+                        <TextField
+                            label="CUIT"
+                            name="cuit"
+                            value={userData.cuit}
+                            fullWidth
+                            onChange={handleChange}
+                            error={!!errors.cuit}
+                            helperText={errors.cuit}
+                        />
+                        <TextField
+                            label="Dirección"
+                            name="address"
+                            value={userData.address || ''}
+                            onChange={handleChange}
+                            fullWidth
+                        />
+                        <TextField
+                            label="Teléfono"
+                            name="phoneNumber"
+                            value={userData.phoneNumber || ''}
+                            onChange={handleChange}
+                            fullWidth
+                        />
+                    </Box>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={onClose}  variant="outlined" color="error" >
+                        Cancelar
+                    </Button>
+                    <Button onClick={handleSave}   variant="outlined" color="primary">
+                        {userToEditId ? 'Guardar cambios' : 'Crear usuario'}
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            <Snackbar
+                open={snackbarOpen}
+                autoHideDuration={6000}
+                onClose={handleSnackbarClose}
+            >
+                <Alert onClose={handleSnackbarClose} severity="success" sx={{ width: '100%' }}>
+                    ¡Operación realizada con éxito!
+                </Alert>
+            </Snackbar>
+        </div>
     );
 };
 

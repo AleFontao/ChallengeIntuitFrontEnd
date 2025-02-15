@@ -29,7 +29,7 @@ const userService = {
 
     async updateUser(userUpdateDTO: any): Promise<any> {
         try {
-            const response = await axiosInstance.patch<any>('api/user', userUpdateDTO);
+            const response = await axiosInstance.put<any>('api/user', userUpdateDTO);
             return response.data;
         } catch (error) {
             console.error('Error updating roles of user:', error);
